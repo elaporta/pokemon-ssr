@@ -1,0 +1,43 @@
+@if (pokemon() === null) {
+    <div class="flex justify-center">
+        <h1 class="text-4xl font-bold">Loading ...</h1>
+    </div>
+}
+@else {
+    <!--
+        @let is a new way to declare a variable in the current scope of the html
+        because the if statement, pokemon() always has a value
+        we can use currentPokemon.attr instead of pokemon()!.attr in the html
+    -->
+    @let currentPokemon = pokemon()!;
+
+    <!-- section name -->
+    <section class="flex flex-col justify-center">
+        <div class="flex justify-center">
+            <h1 class="text-4xl font-bold capitalize my-4">{{ currentPokemon.name }}</h1>
+        </div>
+    </section>
+
+    <!-- section media -->
+    <section class="flex flex-col justify-center items-center w-full">
+        <!-- image -->
+        <img class="w-64 h-64" width="256px" height="256px" [src]="currentPokemon.image" [alt]="currentPokemon.name">
+
+        <!-- audio -->
+        @if (currentPokemon.sound !== null) {
+            <audio controls class="my-10">
+                <source [src]="currentPokemon.sound" type="audio/wav" />
+            </audio>
+        }
+    </section>
+
+    <!-- section information -->
+    <section class="flex flex-col justify-center">
+        <h2 class="text-2xl font-bold mt-2">Abilities</h2>
+        <div class="flex flex-wrap items-center">
+            @for (ability of currentPokemon.abilities; track ability.ability.name) {
+                <span class="mx-2">{{ ability.ability.name }}</span>
+            }
+        </div>
+    </section>
+}
