@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Meta, Title } from '@angular/platform-browser';
 
 import { tap } from 'rxjs';
 
 import { Pokemon } from '../../pokemons/interfaces';
 import { PokemonService } from '../../pokemons/services/pokemon.service';
+import { SeoService } from '../../shared/services/seo.service';
 
 @Component({
   selector: 'app-pokemon-page',
@@ -15,11 +15,11 @@ import { PokemonService } from '../../pokemons/services/pokemon.service';
 })
 export default class PokemonPageComponent implements OnInit {
   private route = inject(ActivatedRoute);
-  private title = inject(Title);
-  private meta = inject(Meta);
 
   private pokemonService = inject(PokemonService);
   public pokemon = signal<Pokemon | null>(null);
+
+  private seoService = inject(SeoService);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -28,16 +28,12 @@ export default class PokemonPageComponent implements OnInit {
     this.pokemonService.loadPokemon(id)
       .pipe(
         tap(({ id, name }) => {
-          const pageTitle = `#${ id } - ${ name }`;
-          const pageDescription = `Pokemon page ${ name }`;
+          name = name.charAt(0).toUpperCase() + name.slice(1);
 
-          this.title.setTitle(pageTitle);
-          this.meta.updateTag({ name: 'og:title', content: `${ pageTitle }` });
-
-          this.meta.updateTag({ name: 'description', content: `${ pageDescription }` });
-          this.meta.updateTag({ name: 'og:description', content: `${ pageDescription }` });
-
-          this.meta.updateTag({ name: 'og:image', content: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${ id }.png` });
+          // Update seo
+          this.seoService.updateTitle(`Pokemon Ssr - ${ name }`);
+          this.seoService.updateDescription(`Pokemon #${ id } - ${ name }`);
+          this.seoService.updateImage(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${ id }.png`);
         })
       )
       .subscribe(this.pokemon.set);

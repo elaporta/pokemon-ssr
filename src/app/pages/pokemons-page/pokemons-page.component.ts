@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Title } from '@angular/platform-browser';
 
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, tap } from 'rxjs';
@@ -9,6 +8,7 @@ import { PokemonListComponent } from "../../pokemons/components/pokemon-list/pok
 import { PokemonService } from '../../pokemons/services/pokemon.service';
 import { Pokemon } from '../../pokemons/interfaces';
 import { PokemonListSkeletonComponent } from "../../pokemons/components/pokemon-list-skeleton/pokemon-list-skeleton.component";
+import { SeoService } from '../../shared/services/seo.service';
 
 @Component({
   selector: 'app-pokemons-page',
@@ -28,7 +28,7 @@ export default class PokemonsPageComponent implements OnInit {
     map(page => isNaN(+page) ? 1 : Math.max(1, +page)),
   ));
 
-  private title = inject(Title);
+  private seoService = inject(SeoService);
 
   ngOnInit(): void {
     this.loadPokemons();
@@ -40,7 +40,11 @@ export default class PokemonsPageComponent implements OnInit {
     this.pokemonService.loadPage(pageToLoad)
       .pipe(
         tap(() => this.router.navigate([], { queryParams: { page: pageToLoad }})),
-        tap(() => this.title.setTitle(`Pokemon Ssr - Page ${pageToLoad}`))
+        tap(() => {
+          // update seo
+          this.seoService.updateTitle(`Pokemon Ssr - Page ${pageToLoad}`)
+          this.seoService.updateDescription('Pokemons Page');
+        })
       )
       .subscribe(pokemons => this.pokemons.set(pokemons));
   }

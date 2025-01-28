@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
-import { Meta, Title } from '@angular/platform-browser';
+
+import { SeoService } from '../../shared/services/seo.service';
 
 @Component({
   selector: 'app-about-page',
@@ -8,13 +9,11 @@ import { Meta, Title } from '@angular/platform-browser';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class AboutPageComponent implements OnInit {
-  private title = inject(Title);
-  private meta = inject(Meta);
+  private seoService = inject(SeoService);
 
-  ngOnInit(): void {
-    this.title.setTitle('About Page');
-    this.meta.updateTag({ name: 'description', content: 'Pokemon Ssr About Page' });
-    this.meta.updateTag({ name: 'og:title', content: 'About Page' });
-    this.meta.updateTag({ name: 'keywords', content: 'Pokemon,Ssr,Angular' });
+  ngOnInit() {
+    // Update seo
+    this.seoService.updateTitle('Pokemon Ssr - About Page');
+    this.seoService.updateDescription('About Page');
   }
 }
