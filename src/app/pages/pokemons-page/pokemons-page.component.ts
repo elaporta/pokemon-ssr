@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, tap } from 'rxjs';
@@ -12,37 +12,34 @@ import { SeoService } from '../../shared/services/seo.service';
 
 @Component({
   selector: 'app-pokemons-page',
-  imports: [PokemonListComponent, PokemonListSkeletonComponent],
+  imports: [PokemonListComponent, PokemonListSkeletonComponent, RouterLink],
   templateUrl: './pokemons-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export default class PokemonsPageComponent implements OnInit {
+export default class PokemonsPageComponent {
   public pokemons = signal<Pokemon[]>([]);
   private pokemonService = inject(PokemonService);
 
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  public currentPage = toSignal<number>(this.route.queryParamMap.pipe(
-    map(params => params.get('page') ?? '1'),
+  public currentPage = toSignal<number>(this.route.params.pipe(
+    map(params => params['page'] ?? '1'),
     map(page => isNaN(+page) ? 1 : Math.max(1, +page)),
   ));
 
   private seoService = inject(SeoService);
 
-  ngOnInit(): void {
-    this.loadPokemons();
-  }
+  public pageChanged = effect(() => {
+    this.loadPokemons(this.currentPage());
+  });
 
   public loadPokemons(page: number = 0) {
-    const pageToLoad = this.currentPage()! + page;
-
-    this.pokemonService.loadPage(pageToLoad)
+    this.pokemonService.loadPage(this.currentPage()!)
       .pipe(
-        tap(() => this.router.navigate([], { queryParams: { page: pageToLoad }})),
         tap(() => {
           // update seo
-          this.seoService.updateTitle(`Pokemon Ssr - Page ${pageToLoad}`)
+          this.seoService.updateTitle(`Pokemon Ssr - Page ${this.currentPage()}`)
           this.seoService.updateDescription('Pokemons Page');
         })
       )
